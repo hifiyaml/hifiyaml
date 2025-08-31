@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hifiyaml"
+version = "0.1.0"
+description = "High-fidelity YAML processing with formatting preserved"
+authors = [
+    { name="Guoqing Ge", email="Guoqing.Ge@noaa.gov" }
+]
+readme = "README.md"
+requires-python = ">=3.9"
+
+[project.urls]
+Homepage = "https://github.com/hifiyaml/hifiyaml"
