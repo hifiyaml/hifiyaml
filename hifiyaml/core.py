@@ -1,15 +1,21 @@
 # ------------------------------
 #  Guoqing.Ge@noaa.gov, Aug. 31st, 2025
 # ------------------------------
-
 import re
+import sys
+
 
 # load a YAML file
-def load(fpath):
+def load(fpath, replacements=None):
+    # precompile regex to match @VAR@
+    pattern = re.compile(r"@(\w+)@")
+
     data = []
     with open(fpath, 'r') as infile:
         for line in infile:
             line = line.rstrip()  # strip all trailing empty spaces
+            if replacements:
+                line = pattern.sub(lambda m: replacements.get(m.group(1), m.group(0)), line)
             data.append(line)
     return data
 
@@ -17,6 +23,12 @@ def load(fpath):
 # convert a multi-line f-string to a hifiyaml block (a list of lines)
 def text_to_yblock(text):
     return text.splitlines()
+
+
+# print information for debugging purpose
+def dbgprint(*parms):
+    msg = " ".join(str(p) for p in parms)
+    sys.stderr.write(msg + "\n")
 
 
 # strip the indetation of a given string, and return the leading space information
@@ -93,44 +105,57 @@ def next_pos(data, pos):
 
     return next_pos
 
+
 # get the start postion of a YAML block specificed by a querystr,
 #    eg: querystr = "cost function/background error/components/1/convariance/members from template"
-def get_start_pos(data, querystr):
+def get_start_pos(data, querystr, ignore_error=False):
+    errmsg = None
     if querystr:
         query_list = querystr.strip("/").split("/")   # strip leading and trailing / and then split
     else:
-        return -1
+        return -1, None
 
     cur = 0
     end = len(data)
+
     for s in query_list:
+        found = False
         for i in range(cur, end):
             line = data[i].strip()
             if s.isdigit():  # search for [ or -
                 line = re.sub(r'(["\']).*?\1', r'\1\1', line)  # remove all contents inside quotes
                 if "[" in line:
-                    print("!! Directly modfiying [....] needs further development !!")
-                    exit()
+                    errmsg = "!! Directly modfiying [....] needs further development !!"
+                    if not ignore_error:
+                        sys.stderr.write(f"{errmsg}\n")
+                        sys.exit(1)
                 elif "- " in line:
                     nextpos = i
                     knt = int(s)
                     for j in range(0, knt):
                         nextpos = next_pos(data, nextpos)
                     cur = nextpos
-                    break  # break the nest loop
+                    found = True
+                    break
 
             else:  # dictionary key
                 if f"{s}:" in line:
                     cur = i
-                    break  # break the nest loop
+                    found = True
+                    break
+        if not found:
+            errmsg = f"key error: '{s}' not found\n"
+            if not ignore_error:
+                sys.stderr.write(f"{errmsg}\n")
+                sys.exit(1)
     # ~~~~~~~~~~~~~~~~~
-    return cur
+    return cur, errmsg
 
 
 # get the content of a YAML block referred to by a querystr
 def get(data, querystr):
     block = []
-    pos1 = get_start_pos(data, querystr)
+    pos1, _ = get_start_pos(data, querystr)
     pos2 = next_pos(data, pos1)
     if pos1 == -1:  # empty querystr, so dump the full YAML data
         pos1 = 0
@@ -162,13 +187,13 @@ def dump(data, querystr="", fpath=None):
         if fpath is None:
             print(line)
         else:
-            outfile.write(line+'\n')
+            outfile.write(line + '\n')
 
 
-# drop a YAML block specificed by a querystr and return the newdata
+# drop a YAML block specificed by a querystr from data
 def drop(data, querystr):
-    newdata = data.copy()  # no nesting in data, so shallow copy is enough
-    pos1 = get_start_pos(data, querystr)
+    # newdata = data.copy()  # no nesting in data, so shallow copy is enough
+    pos1, _ = get_start_pos(data, querystr)
     if pos1 == -1:  # empty querystr, no drop action
         return
 
@@ -185,18 +210,25 @@ def drop(data, querystr):
         else:
             break  # exit the loop if not a comment or different indentation level
 
-    del (newdata[pos1:pos2])
-    return newdata
+    del data[pos1:pos2]
 
 
-# modify a YAML bock specified by a querystr with a newblock, return newdata
+# modify a YAML bock specified by a querystr with a newblock
 def modify(data, querystr, newblock):
-    newdata = data.copy()  # no nesting in data, no shallow copy is enough
-    pos1 = get_start_pos(data, querystr)
+    if isinstance(newblock, str):  # if newblock is a string, convert it to a list
+        newblock = [newblock]
+
+    pos1, _ = get_start_pos(data, querystr)
     if pos1 == -1:  # empty querystr, no modify action
         return
 
     pos2 = next_pos(data, pos1)
+    # check whether pos2-1, -2 ... are empty lines
+    for i in range(pos2 - 1, pos1, -1):
+        if data[i].strip():
+            break
+        else:
+            pos2 = i
 
     # get the number of indentation spaces
     nspace, spaces, _ = strip_indentations(data[pos1])
@@ -217,5 +249,4 @@ def modify(data, querystr, newblock):
         for i, line in enumerate(newblock):
             newblock[i] = spaces + line.lstrip()
 
-    newdata[pos1:pos2] = newblock
-    return newdata
+    data[pos1:pos2] = newblock
