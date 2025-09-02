@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hifiyaml"
-version = "0.1.0"
+version = "0.1.1"
 description = "High-fidelity YAML processing with formatting preserved"
 authors = [
     { name="Guoqing Ge", email="Guoqing.Ge@noaa.gov" }
