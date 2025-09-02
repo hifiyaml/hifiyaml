@@ -1,5 +1,6 @@
 # hifiyaml
-High-fidelity YAML processing with original structure and format preserved (such as comments, anchors, aliases, etc)
+High-fidelity YAML parser that preserves formatting.    
+Original YAML structure and formatting are preserved, including comments, anchors, aliases, etc.
 
 ## Installation
 ```
@@ -8,17 +9,46 @@ pip install hifiyaml
 
 ## Quick demo
 ### 1. get an example YAML file
-Let's use `jedivar.yaml` from [the RRFSv2 system](https://github.com/NOAA-EMC/rrfs-workflow/tree/rrfs-mpas-jedi) as an example.
+Use `jedivar.yaml` from [the RRFSv2 system](https://github.com/NOAA-EMC/rrfs-workflow/tree/rrfs-mpas-jedi) as an example.
 ```
 wget https://raw.githubusercontent.com/NOAA-EMC/rrfs-workflow/refs/heads/rrfs-mpas-jedi/parm/jedivar.yaml
 ```
-### 2. load the YAML data and dump a subcomponent YAML block using a querystr
+### 2. load the YAML data and dump a YAML block using a querystr
 Write the following statments into `test.py`:
 ```
 import hifiyaml as hy
 data = hy.load("jedivar.yaml")
 querystr = "cost function/background error/components/1"
-hy.dump(data, querystr)
-hy.dump(data, querystr, 'ensbec.yaml')
+hy.dump(data, querystr)   # dump to stdout
+hy.dump(data, querystr, 'ensbec.yaml')   # dump to a file
 ```
-run `python test.py`
+run `python test.py`, check the stdout and the `ensbec.yaml` file.
+
+NOTE: **A querystr** is a string describing the path from the top level key (or index if a list) to the destination level key (or index), separated with `/`.  
+For the following simple YAML file,
+```
+demo:
+  configuration:
+    suite: YAML
+    detail:
+      - meaning:
+          - Y: Yelling
+          - A: At
+          - M: My
+          - L: Laptop
+```
+A query string `demo/configuration/detail/0/meaning` will return one dictionary item with "meaning" as the key and a list of 4 items as the value, i.e:
+```
+- meaning:
+    - Y: Yelling
+    - A: At
+    - M: My
+    - L: Laptop
+```
+
+### 3. More is coming soon.
+`hifiyaml` currently provides the following functions:
+```
+load, get, dump, drop, modify, next_pos, get_start_pos, text_to_yblock, strip_indentations, strip_leading_empty_lines
+```
+More information will be added soon.
