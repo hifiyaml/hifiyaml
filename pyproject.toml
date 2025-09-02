@@ -1,16 +1,19 @@
+[project]
+name = "hifiyaml"
+version = "0.1.1"
+description = "High-fidelity YAML parser that preserves formatting"
+readme = "README.md"
+authors = [
+    { name="Guoqing Ge", email="Guoqing.Ge@noaa.gov" }
+]
+license = {file = "LICENSE"}
+requires-python = ">=3.9"
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-[project]
-name = "hifiyaml"
-version = "0.1.1"
-description = "High-fidelity YAML processing with formatting preserved"
-authors = [
-    { name="Guoqing Ge", email="Guoqing.Ge@noaa.gov" }
-]
-readme = "README.md"
-requires-python = ">=3.9"
-
 [project.urls]
 Homepage = "https://github.com/hifiyaml/hifiyaml"
+Source = "https://github.com/UXARRAY/uxarray"
+Tracker = "https://github.com/UXARRAY/uxarray/issues"
