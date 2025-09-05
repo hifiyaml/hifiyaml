@@ -65,7 +65,7 @@ def dedent(block):
     if nspaceBlock > 0:
         for i in range(0, len(block)):
             nspace = strip_indentations(block[i])[0]
-            if nspace < nSpaceBlock:
+            if nspace < nspaceBlock:
                 block[i] = block[i][nspace:]
             else:
                 block[i] = block[i][nspaceBlock:]
@@ -82,7 +82,7 @@ def next_pos(data, pos, querystr=""):
 
     line1 = data[pos]
     nspace, spaces, line1 = strip_indentations(line1)
-    if query_list[-2].isdigit() and not query_list[-1].isdigit():
+    if len(query_list) >=2 and query_list[-2].isdigit() and not query_list[-1].isdigit():
         # i.e, the ".../0/key" situation
         # more complicated situations, such as a list of list (of list ...)
         # are suggested to be handled based on the first list block outside hifiyaml
@@ -154,7 +154,7 @@ def get_start_pos(data, querystr="", ignore_error=False, linestr=""):
                     nextpos = i
                     knt = int(s)
                     for j in range(0, knt):
-                        nextpos = next_pos(data, nextpos)
+                        nextpos = next_pos(data, nextpos, querystr)
                     cur = nextpos
                     found = True
                     break
@@ -178,9 +178,10 @@ def get(data, querystr, do_dedent=True):
     block = []
     if querystr == "":  # empty querystr, so dump the full YAML data
         pos1 = 0
+        pos2 = len(data)
     else:
         pos1, _ = get_start_pos(data, querystr)
-    pos2 = next_pos(data, pos1)
+        pos2 = next_pos(data, pos1, querystr)
 
     # get the number of indentation spaces
     nspace = strip_indentations(data[pos1])[0]
@@ -194,7 +195,7 @@ def get(data, querystr, do_dedent=True):
 
     block = data[pos1:pos2]
     if do_dedent:
-        dedent(tmp)
+        dedent(block)
     return block
 
 
@@ -212,11 +213,11 @@ def dump(data, querystr="", fpath=None):
 
 # drop a YAML block specificed by a querystr
 def drop(data, querystr):
-    if querystr = "":
+    if querystr == "":
         return  # empty querystr, no drop action
 
     pos1, _ = get_start_pos(data, querystr)
-    pos2 = next_pos(data, pos1)
+    pos2 = next_pos(data, pos1, querystr)
 
     # check if there are comments immediately before this YAML block
     for i in range(pos1 - 1, -1, -1):
@@ -233,12 +234,12 @@ def modify(data, querystr, newblock):
     if isinstance(newblock, str):  # if newblock is a string, convert it to a list
         newblock = [newblock]
 
-    if querystr = "":  # empty querystr means the whole document
+    if querystr == "":  # empty querystr means the whole document
         return         # in this situation, hifiyaml is not needed
 
     # get the "querystr" YAML block start position and (end_postion+1)
     pos1, _ = get_start_pos(data, querystr)
-    pos2 = next_pos(data, pos1)
+    pos2 = next_pos(data, pos1, querystr)
 
     # get the number of indentation spaces in the "querystr" YAML block
     nspace, spaces, _ = strip_indentations(data[pos1])
