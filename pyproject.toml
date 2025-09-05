@@ -1,6 +1,6 @@
 [project]
 name = "hifiyaml"
-version = "0.1.1"
+version = "0.1.2"
 description = "High-fidelity YAML parser that preserves formatting"
 readme = "README.md"
 authors = [
@@ -15,5 +15,5 @@ build-backend = "setuptools.build_meta"
 
 [project.urls]
 Homepage = "https://github.com/hifiyaml/hifiyaml"
-Source = "https://github.com/UXARRAY/uxarray"
-Tracker = "https://github.com/UXARRAY/uxarray/issues"
+Source = "https://github.com/hifiyaml/hifiyaml"
+Tracker = "https://github.com/hifiyaml/hifiyaml/issues"
