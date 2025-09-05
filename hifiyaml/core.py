@@ -51,7 +51,8 @@ def strip_leading_empty_lines(block):
 
 # dedent a YAML block
 def dedent(block):
-    # find the first non comment line (comment indentations are often inconsistent)
+    # find the first non-comment line (comment indentations are often inconsistent,
+    #   so we cannot rely on the comment lines to find the block indentation)
     pos = -1
     for i in range(len(block)):
         if not block[i].strip().startswith("#"):
@@ -72,8 +73,8 @@ def dedent(block):
 
 # find the YAML block position of next peer or next ancestor
 # querystr="" to provide backward compatibility
-#   if querystr ends with ".../0/key" and key is the first line
-#   we need to find the next_pos for .../key instead of .../0
+#   if querystr ends with ".../0/key" and "key" is in the first line
+#   we need to find the next_pos based on ".../key" instead of ".../0"
 def next_pos(data, pos, querystr=""):
     if pos == -1:
         return len(data)
@@ -82,10 +83,10 @@ def next_pos(data, pos, querystr=""):
     line1 = data[pos]
     nspace, spaces, line1 = strip_indentations(line1)
     if query_list[-2].isdigit() and not query_list[-1].isdigit():
-        # only handle the ".../0/key" situation for now
-        # more complicated situation, such list of list (of list ...)
-        # are suggested to be handled based on the first list block
-        line1 = line1[2:]  # assume "- " without extra spaces
+        # i.e, the ".../0/key" situation
+        # more complicated situations, such as a list of list (of list ...)
+        # are suggested to be handled based on the first list block outside hifiyaml
+        line1 = line1[2:]  # assume "- " instead of "-   " or even more spaces
         nspace += 2
         spaces += "  "
 
@@ -95,16 +96,16 @@ def next_pos(data, pos, querystr=""):
         line2 = data[i]
         nspace2, spaces2, line2 = strip_indentations(line2)
         if not line2 or line2.startswith("#"):
-            pass  # ignore empty lines and comment lines
-        elif nspace2 == nspace:  # next peer, i.e. same indentation level
-            if line1.startswith("- "):  # if "- ", next peer will certainly be "- "
+            pass  # ignore empty lines and comment lines when finding the positions
+        elif nspace2 == nspace:  # next peer, i.e. the same indentation level
+            if line1.startswith("- "):  # if the querystr block is a list element, next peer will certainly be "- "
                 next_pos = i
                 break
-            else:  # if not "- ", next peer should NOT be "- " although YAML does not strictly enforce indenting "- "
+            else:  # if the querystr is NOT a list element, next peer should NOT be inconsistently-indented "- "
                 if not line2.startswith("- "):
                     next_pos = i
                     break
-        elif nspace2 < nspace:  # next ancestor, i.e less indentations
+        elif nspace2 < nspace:  # next ancestor, i.e parental indentation level
             next_pos = i
             break
 
@@ -112,7 +113,7 @@ def next_pos(data, pos, querystr=""):
         next_pos = end
     else:
         # check if there are comment lines immediately before next_pos
-        # if yes, move next_pos back one more line until it is next to pos
+        # if yes, move next_pos back until a non-comment line
         for i in range(next_pos - 1, pos, -1):
             if data[i].strip().startswith('#'):
                 next_pos = i
@@ -173,12 +174,13 @@ def get_start_pos(data, querystr="", ignore_error=False, linestr=""):
 
 
 # get the content of a YAML block referred to by a querystr
-def get(data, querystr):
+def get(data, querystr, do_dedent=True):
     block = []
-    pos1, _ = get_start_pos(data, querystr)
-    pos2 = next_pos(data, pos1)
-    if pos1 == -1:  # empty querystr, so dump the full YAML data
+    if querystr == "":  # empty querystr, so dump the full YAML data
         pos1 = 0
+    else:
+        pos1, _ = get_start_pos(data, querystr)
+    pos2 = next_pos(data, pos1)
 
     # get the number of indentation spaces
     nspace = strip_indentations(data[pos1])[0]
@@ -191,7 +193,8 @@ def get(data, querystr):
             break  # exit the loop if non-comment
 
     block = data[pos1:pos2]
-    dedent(tmp)
+    if do_dedent:
+        dedent(tmp)
     return block
 
 
@@ -199,7 +202,7 @@ def get(data, querystr):
 def dump(data, querystr="", fpath=None):
     if fpath is not None:
         outfile = open(fpath, 'w')
-    block = get(data, querystr)
+    block = get(data, querystr)  # dedented YAML block by default
     for line in block:
         if fpath is None:
             print(line)
@@ -209,10 +212,10 @@ def dump(data, querystr="", fpath=None):
 
 # drop a YAML block specificed by a querystr
 def drop(data, querystr):
-    pos1, _ = get_start_pos(data, querystr)
-    if pos1 == -1:  # empty querystr, no drop action
-        return
+    if querystr = "":
+        return  # empty querystr, no drop action
 
+    pos1, _ = get_start_pos(data, querystr)
     pos2 = next_pos(data, pos1)
 
     # check if there are comments immediately before this YAML block
@@ -230,25 +233,26 @@ def modify(data, querystr, newblock):
     if isinstance(newblock, str):  # if newblock is a string, convert it to a list
         newblock = [newblock]
 
-    pos1, _ = get_start_pos(data, querystr)
-    if pos1 == -1:  # empty querystr, no modify action
-        return
+    if querystr = "":  # empty querystr means the whole document
+        return         # in this situation, hifiyaml is not needed
 
+    # get the "querystr" YAML block start position and (end_postion+1)
+    pos1, _ = get_start_pos(data, querystr)
     pos2 = next_pos(data, pos1)
 
-    # get the number of the block indentation spaces
+    # get the number of indentation spaces in the "querystr" YAML block
     nspace, spaces, _ = strip_indentations(data[pos1])
 
-    # check if there are comments immediately before this YAML block
+    # check if there are comments immediately before the "querystr" YAML block
     for i in range(pos1 - 1, -1, -1):
         if data[i].strip().startswith('#'):
             pos1 = i
         else:
             break  # exit the loop if non-comment
 
-    # strip any possible leading empty lines in newblock
+    # strip any possible leading empty lines in the newblock
     strip_leading_empty_lines(newblock)
-    # dedent to make sure no leading empty spaces in the first line
+    # dedent the newblock to the root indentation level
     dedent(newblock)
     # align the newblock indentations to match the querystr block
     if nspace > 0:
