@@ -111,7 +111,7 @@ def next_pos(data, pos, querystr=""):
     if next_pos is None:
         next_pos = end
     else:
-        # check if there are comment lines immediately before next_pos and with less indentations
+        # check if there are comment lines immediately before next_pos and with less or the same indentations
         # if yes, move next_pos back until a non-comment line
         for i in range(next_pos - 1, pos, -1):
             nspace2 = strip_indentations(data[i])[0]
@@ -183,9 +183,11 @@ def get(data, querystr, do_dedent=True):
         pos1, _ = get_start_pos(data, querystr)
         pos2 = next_pos(data, pos1, querystr)
 
-    # check if there are comments immediately before this YAML block
+    nspace = strip_indentations(data[pos1])[0]
+    # check if there are comment lines immediately before this YAML block and with less or the same indentations
     for i in range(pos1 - 1, -1, -1):
-        if data[i].strip().startswith('#'):
+        nspace2 = strip_indentations(data[i])[0]
+        if data[i].strip().startswith('#') and nspace2 <= nspace:
             pos1 = i
         else:
             break  # exit the loop if non-comment
@@ -216,9 +218,11 @@ def drop(data, querystr):
     pos1, _ = get_start_pos(data, querystr)
     pos2 = next_pos(data, pos1, querystr)
 
-    # check if there are comments immediately before this YAML block
+    nspace = strip_indentations(data[pos1])[0]
+    # check if there are comment lines immediately before this YAML block and with less or the same indentations
     for i in range(pos1 - 1, -1, -1):
-        if data[i].strip().startswith('#'):
+        nspace2 = strip_indentations(data[i])[0]
+        if data[i].strip().startswith('#') and nspace2 <= nspace:
             pos1 = i
         else:
             break  # exit the loop if non-comment
@@ -241,9 +245,10 @@ def modify(data, querystr, newblock):
     # get the number of indentation spaces in the "querystr" YAML block
     nspace, spaces, _ = strip_indentations(data[pos1])
 
-    # check if there are comments immediately before the "querystr" YAML block
+    # check if there are comment lines immediately before the "querystr" YAML block with less or the same indentations
     for i in range(pos1 - 1, -1, -1):
-        if data[i].strip().startswith('#'):
+        nspace2 = strip_indentations(data[i])[0]
+        if data[i].strip().startswith('#') and nspace2 <= nspace:
             pos1 = i
         else:
             break  # exit the loop if non-comment
