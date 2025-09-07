@@ -13,10 +13,10 @@ import hifiyaml as hy  # noqa: E402
 args = sys.argv
 nargs = len(args) - 1
 if nargs < 3:
-    print(f"{os.path.basename(args[0])} <file> <dump|drop|modify> <querystr> [newblock] [nodedent]")
+    print(f"{os.path.basename(args[0])} <file> <dump|drop|modify> <querystr> [newblock_str] [nodedent]")
     exit()
 
-newblock, dedent = "", True   # default values
+newblock_str, dedent = "", True   # default values
 
 yfile = args[1]
 operator = args[2]
@@ -27,7 +27,11 @@ else:
     sys.exit(1)
 if nargs > 3:
     if operator == "modify":
-        newblock = args[4]
+        newblock_str = args[4]
+        if os.path.exists(newblock_str):
+            newblock = hy.load(newblock_str)
+        else:
+            newblock = newblock_str
     elif operator == "dump":
         dedent = (args[4] != "nodedent")
 
@@ -37,8 +41,10 @@ if operator == "dump":
     hy.dump(data, querystr, do_dedent=dedent)
 elif operator == "drop":
     hy.drop(data, querystr)
+    hy.dump(data)
 elif operator == "modify":
-    if newblock:
+    if newblock_str:
         hy.modify(data, querystr, newblock)
+        hy.dump(data)
     else:
-        print("newblock cannot be empty for the modify operator")
+        print("newblock_str cannot be empty for the modify operator")
