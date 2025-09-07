@@ -8,7 +8,7 @@ here = os.path.dirname(__file__)
 hifiyaml_path = os.path.join(here, "..")
 if hifiyaml_path not in sys.path:
     sys.path.insert(0, hifiyaml_path)
-import hifiyaml as hy
+import hifiyaml as hy  # noqa: E402
 
 args = sys.argv
 nargs = len(args) - 1
@@ -31,7 +31,7 @@ if nargs > 3:
     elif operator == "dump":
         dedent = (args[4] != "nodedent")
 
-data =  hy.load(yfile)
+data = hy.load(yfile)
 
 if operator == "dump":
     hy.dump(data, querystr, do_dedent=dedent)
