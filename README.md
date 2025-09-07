@@ -1,6 +1,7 @@
 # hifiyaml
 High-fidelity YAML parser that preserves formatting.    
-Original YAML structure and formatting are preserved, including comments, anchors, aliases, etc.
+Original YAML structure and formatting are preserved, including comments, anchors, aliases, etc.    
+Check wiki at https://github.com/hifiyaml/hifiyaml/wiki
 
 ## Installation
 ```
@@ -8,19 +9,19 @@ pip install hifiyaml
 ```
 
 ## Quick demo
-### 1. get an example YAML file
+### 1. Get an example YAML file
 Use `jedivar.yaml` from [the RRFSv2 system](https://github.com/NOAA-EMC/rrfs-workflow/tree/rrfs-mpas-jedi) as an example.
 ```
 wget https://raw.githubusercontent.com/NOAA-EMC/rrfs-workflow/refs/heads/rrfs-mpas-jedi/parm/jedivar.yaml
 ```
-### 2. load the YAML data and dump a YAML block using a querystr
+### 2. Load the YAML data and dump a YAML block using a querystr
 Write the following statments into `test.py`:
 ```
 import hifiyaml as hy
 data = hy.load("jedivar.yaml")
 querystr = "cost function/background error/components/1"
 hy.dump(data, querystr)   # dump to stdout
-hy.dump(data, querystr, 'ensbec.yaml')   # dump to a file
+hy.dump(data, querystr, 'ensbec.yaml')   # dump to the file 'ensbec.yaml'
 ```
 run `python test.py`, check the stdout and the `ensbec.yaml` file.
 
@@ -46,9 +47,8 @@ A query string `demo/configuration/detail/0/meaning` will return one dictionary 
     - L: Laptop
 ```
 
-### 3. More is coming soon.
+### 3. Availabe functions.
 `hifiyaml` currently provides the following functions:
 ```
-load, get, dump, drop, modify, next_pos, get_start_pos, text_to_yblock, strip_indentations, strip_leading_empty_lines
+load, get, dump, drop, modify, next_pos, get_start_pos, dedent, text_to_yblock, strip_indentations, strip_leading_empty_lines
 ```
-More information will be added soon.
