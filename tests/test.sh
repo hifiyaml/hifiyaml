@@ -13,7 +13,7 @@ operate.py demo.yaml dump "cost function/observations/observers/0/obs filters/6"
 
 diff tmp ref
 if (( $? == 0 )); then
-  echo "test passed, identifical results."
+  echo "test passed, identical results."
 else
-  echo "test failed, different reulsts!"
+  echo "test failed, different results!"
 fi
