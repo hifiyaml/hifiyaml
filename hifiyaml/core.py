@@ -72,13 +72,18 @@ def dedent(block):
 
 
 # find the YAML block position of next peer or next ancestor
-# querystr="" to provide backward compatibility
 #   if querystr ends with ".../0/key" and "key" is in the first line
 #   we need to find the next_pos based on ".../key" instead of ".../0"
 def next_pos(data, pos, querystr=""):
     if pos == -1:
         return len(data)
     query_list = querystr.strip("/").split("/")
+
+    # skip the leading comment lines and find the actual start of a block
+    for i in range(pos, len(data)):
+        if not data[i].strip().startswith("#"):
+            pos = i
+            break
 
     line1 = data[pos]
     nspace, spaces, line1 = strip_indentations(line1)
@@ -123,9 +128,10 @@ def next_pos(data, pos, querystr=""):
     return next_pos
 
 
-# get the start postion of a YAML block specificed by a querystr or linestr
+# get the start postion of a YAML block specificed by a querystr or linestr, excluding comment lines
 #    eg: querystr = "cost function/background error/components/1/convariance/members from template"
 #        linestr = "- filter: Temporal Thinning" # to find a line contains this linestr
+# returns the start position of a block (including the leading comment lines)
 def get_start_pos(data, querystr="", ignore_error=False, linestr=""):
     errmsg = None
     if querystr:
@@ -134,7 +140,7 @@ def get_start_pos(data, querystr="", ignore_error=False, linestr=""):
         if not linestr:  # linestr only takes effect when querystr="" and if linestr="", return
             return -1, None
         else:  # if linestr presents, create a placeholder querylist
-            query_list = ["place:holder:query:list:longmont:colorado:USA"]
+            query_list = [f"@linestr@:{linestr}"]
 
     cur = 0
     end = len(data)
@@ -145,12 +151,11 @@ def get_start_pos(data, querystr="", ignore_error=False, linestr=""):
             line = data[i].strip()
             if s.isdigit():  # search for [ or -
                 line = re.sub(r'(["\']).*?\1', r'\1\1', line)  # remove all contents inside quotes
-                if "[" in line:
-                    errmsg = "!! Directly modfiying [....] needs further development !!"
-                    if not ignore_error:
-                        sys.stderr.write(f"{errmsg}\n")
-                        sys.exit(1)
-                elif "- " in line:
+                if "[" in line:  # a flow style list, only find the line with starting "["
+                    nextpos = i
+                    found = True
+                    break
+                elif "- " in line:  # a block style list
                     nextpos = i
                     knt = int(s)
                     for j in range(0, knt):
@@ -169,11 +174,19 @@ def get_start_pos(data, querystr="", ignore_error=False, linestr=""):
             if not ignore_error:
                 sys.stderr.write(f"{errmsg}\n")
                 sys.exit(1)
+            else:
+                break  # do not continue checking the left querystr
     # ~~~~~~~~~~~~~~~~~
+    # make sure "cur" does not point to a comment line
+    for i in range(cur, len(data)):
+        if not data[i].strip().startswith("#"):
+            cur = i
+            break
     return cur, errmsg
 
 
 # get the content of a YAML block referred to by a querystr
+#   add leading comment lines to the returned block
 def get(data, querystr, do_dedent=True):
     block = []
     if querystr == "":  # empty querystr, so dump the full YAML data
@@ -199,10 +212,11 @@ def get(data, querystr, do_dedent=True):
 
 
 # dump the content of a YAML block referred to by a querystr
-def dump(data, querystr="", fpath=None):
+#   the block includes the leading comment lines
+def dump(data, querystr="", fpath=None, do_dedent=True):
     if fpath is not None:
         outfile = open(fpath, 'w')
-    block = get(data, querystr)  # dedented YAML block by default
+    block = get(data, querystr, do_dedent)
     for line in block:
         if fpath is None:
             print(line)
@@ -211,6 +225,7 @@ def dump(data, querystr="", fpath=None):
 
 
 # drop a YAML block specificed by a querystr
+#   drop the leading comment lines immediately preceding this block
 def drop(data, querystr):
     if querystr == "":
         return  # empty querystr, no drop action
@@ -231,6 +246,8 @@ def drop(data, querystr):
 
 
 # modify a YAML bock specified by a querystr with a newblock
+#   drop the leading comment lines immediately preceding the old block
+#   so comment lines have to present in the new block to stay
 def modify(data, querystr, newblock):
     if isinstance(newblock, str):  # if newblock is a string, convert it to a list
         newblock = [newblock]
