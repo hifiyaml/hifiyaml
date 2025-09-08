@@ -1,6 +1,6 @@
 [project]
 name = "hifiyaml"
-version = "0.1.4"
+version = "0.1.5"
 description = "High-fidelity YAML parser that preserves formatting"
 readme = "README.md"
 authors = [

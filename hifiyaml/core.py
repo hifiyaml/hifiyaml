@@ -165,7 +165,7 @@ def get_start_pos(data, querystr="", ignore_error=False, linestr=""):
                     break
 
             else:  # dictionary key or linestr
-                if (linestr and linestr in data[i]) or f"{s}:" in line:
+                if (linestr and linestr in data[i] and not data[i].strip().startswith("#")) or f"{s}:" in line:
                     cur = i
                     found = True
                     break
