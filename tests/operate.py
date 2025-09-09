@@ -13,7 +13,7 @@ import hifiyaml as hy  # noqa: E402
 args = sys.argv
 nargs = len(args) - 1
 if nargs < 3:
-    print(f"{os.path.basename(args[0])} <file> <dump|drop|modify> <querystr> [newblock_str] [nodedent]")
+    print(f"{os.path.basename(args[0])} <file> <dump|drop|modify|next_pos> <querystr> [newblock_str] [nodedent]")
     exit()
 
 newblock_str, dedent = "", True   # default values
@@ -34,14 +34,21 @@ if nargs > 3:
             newblock = newblock_str
     elif operator == "dump":
         dedent = (args[4] != "nodedent")
+    elif operator == "next_pos":
+        pos1 = int(args[4])
 
 data = hy.load(yfile)
 
 if operator == "dump":
     hy.dump(data, querystr, do_dedent=dedent)
+
+elif operator == "next_pos":
+    print(hy.next_pos(data, pos1, querystr))
+
 elif operator == "drop":
     hy.drop(data, querystr)
     hy.dump(data)
+
 elif operator == "modify":
     if newblock_str:
         hy.modify(data, querystr, newblock)
