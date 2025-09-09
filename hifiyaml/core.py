@@ -118,9 +118,10 @@ def next_pos(data, pos, querystr=""):
     else:
         # check if there are comment lines immediately before next_pos and with less or the same indentations
         # if yes, move next_pos back until a non-comment line
+        nspace_next = strip_indentations(data[next_pos])[0]
         for i in range(next_pos - 1, pos, -1):
             nspace2 = strip_indentations(data[i])[0]
-            if data[i].strip().startswith('#') and nspace2 <= nspace:
+            if data[i].strip().startswith('#') and nspace2 <= nspace_next:
                 next_pos = i
             else:
                 break

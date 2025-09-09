@@ -17,6 +17,8 @@ operate.py demo.yaml modify "cost function/observations/observers/0/distribution
 
 operate.py demo.yaml drop "cost function/observations/observers/0/obs filters/1" > tmp/drop.yaml
 
+operate.py demo.yaml next_pos  ""  641  > tmp/next_pos.txt
+
 diff tmp ref
 if (( $? == 0 )); then
   echo "test passed, identical results."
