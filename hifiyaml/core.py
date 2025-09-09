@@ -281,6 +281,6 @@ def modify(data, querystr, newblock, oneline_change=False):
             newblock[i] = spaces + line
 
     if oneline_change:
-        data[pos1] = newblock[0]
+        data[pos1] = newblock[0] if newblock else ""
     else:
         data[pos1:pos2] = newblock
