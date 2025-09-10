@@ -249,9 +249,9 @@ def drop(data, querystr):
 # modify a YAML bock specified by a querystr with a newblock
 #   drop the leading comment lines immediately preceding the old block
 #   so comment lines have to present in the new block to stay
-def modify(data, querystr, newblock):
+def modify(data, querystr, newblock, oneline_change=False):
     if isinstance(newblock, str):  # if newblock is a string, convert it to a list
-        newblock = [newblock]
+        newblock = text_to_yblock(newblock)
 
     if querystr == "":  # empty querystr means the whole document
         return         # in this situation, hifiyaml is not needed
@@ -280,4 +280,7 @@ def modify(data, querystr, newblock):
         for i, line in enumerate(newblock):
             newblock[i] = spaces + line
 
-    data[pos1:pos2] = newblock
+    if oneline_change:
+        data[pos1] = newblock[0] if newblock else ""
+    else:
+        data[pos1:pos2] = newblock
