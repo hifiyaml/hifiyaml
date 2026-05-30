@@ -1,4 +1,9 @@
 #!/bin/bash
+module load python
+if ! which python &>/dev/null; then
+  echo "python not found"
+  exit 1
+fi
 
 rm -rf tmp
 mkdir -p tmp
