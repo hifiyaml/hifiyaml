@@ -133,7 +133,7 @@ def next_pos(data, pos, querystr=""):
 #    eg: querystr = "cost function/background error/components/1/convariance/members from template"
 #        linestr = "- filter: Temporal Thinning" # to find a line contains this linestr
 # returns the start position of a block (including the leading comment lines)
-def get_start_pos(data, querystr="", ignore_error=False, linestr=""):
+def get_start_pos(data, querystr="", stop_on_error=False, linestr=""):
     errmsg = None
     if querystr:
         query_list = querystr.strip("/").split("/")   # strip leading and trailing / and then split
@@ -162,6 +162,15 @@ def get_start_pos(data, querystr="", ignore_error=False, linestr=""):
                     for j in range(0, knt):
                         nextpos = next_pos(data, nextpos, querystr)
                     cur = nextpos
+                    # skip all leading comments
+                    dashpos = cur
+                    while data[dashpos].strip().startswith('#'):
+                        dashpos += 1
+                    if "- " not in data[dashpos]:  # out of the list index
+                        errmsg = f"WARNNING: out of the list index '{querystr}' "
+                        sys.stderr.write(f"{errmsg}\n")
+                        if stop_on_error:
+                            sys.exit(1)
                     found = True
                     break
 
@@ -172,7 +181,7 @@ def get_start_pos(data, querystr="", ignore_error=False, linestr=""):
                     break
         if not found:
             errmsg = f"key error: '{s}' not found\n"
-            if not ignore_error:
+            if stop_on_error:
                 sys.stderr.write(f"{errmsg}\n")
                 sys.exit(1)
             else:
@@ -188,7 +197,7 @@ def get_start_pos(data, querystr="", ignore_error=False, linestr=""):
 
 # get the content of a YAML block referred to by a querystr
 #   add leading comment lines to the returned block
-def get(data, querystr, do_dedent=True):
+def get(data, querystr, do_dedent=False):
     block = []
     if querystr == "":  # empty querystr, so dump the full YAML data
         pos1 = 0
@@ -213,8 +222,8 @@ def get(data, querystr, do_dedent=True):
 
 
 # dump the content of a YAML block referred to by a querystr
-#   the block includes the leading comment lines
-def dump(data, querystr="", fpath=None, do_dedent=True):
+#   the leading comment lines are included in the dumped block
+def dump(data, querystr="", fpath=None, do_dedent=False):
     if fpath is not None:
         outfile = open(fpath, 'w')
     block = get(data, querystr, do_dedent)
@@ -231,7 +240,9 @@ def drop(data, querystr):
     if querystr == "":
         return  # empty querystr, no drop action
 
-    pos1, _ = get_start_pos(data, querystr)
+    pos1, errmsg = get_start_pos(data, querystr)
+    if errmsg is not None:  # do nothing if querystr not found
+        return
     pos2 = next_pos(data, pos1, querystr)
 
     nspace = strip_indentations(data[pos1])[0]
@@ -247,17 +258,21 @@ def drop(data, querystr):
 
 
 # modify a YAML bock specified by a querystr with a newblock
-#   drop the leading comment lines immediately preceding the old block
+#   leading comment lines immediately preceding the old block will be lost
 #   so comment lines have to present in the new block to stay
-def modify(data, querystr, newblock, oneline_change=False):
+def modify(data, querystr, newblock):
+    oneline_change = False
     if isinstance(newblock, str):  # if newblock is a string, convert it to a list
+        oneline_change = len(newblock.splitlines()) <= 1
         newblock = text_to_yblock(newblock)
 
     if querystr == "":  # empty querystr means the whole document
         return         # in this situation, hifiyaml is not needed
 
     # get the "querystr" YAML block start position and (end_postion+1)
-    pos1, _ = get_start_pos(data, querystr)
+    pos1, errmsg = get_start_pos(data, querystr)
+    if errmsg is not None:  # do nothing if querystr not found
+        return
     pos2 = next_pos(data, pos1, querystr)
 
     # get the number of indentation spaces in the "querystr" YAML block
