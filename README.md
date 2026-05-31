@@ -1,5 +1,5 @@
 # hifiyaml
-High-fidelity YAML parser that preserves formatting.    
+High-fidelity WYSIWYG YAML parser and emitter that preserve exact formatting.    
 Original YAML structure and formatting are preserved, including comments, anchors, aliases, etc.    
 Check wiki at https://github.com/hifiyaml/hifiyaml/wiki
 
@@ -23,9 +23,9 @@ querystr = "cost function/background error/components/1"
 hy.dump(data, querystr)   # dump to stdout
 hy.dump(data, querystr, 'ensbec.yaml')   # dump to the file 'ensbec.yaml'
 ```
-run `python test.py`, check the stdout and the `ensbec.yaml` file.
+run `cd tests; ./test.sh` and then check the output yaml files
 
-NOTE: **A querystr** is a string describing the path from the top level key (or index if a list) to the destination level key (or index), separated with `/`.  
+NOTE: **A querystr** is a string describing the path from a unique higher level key (or index if a list) to the destination level key (or index), separated with `/`.  
 For the following simple YAML file,
 ```
 demo:

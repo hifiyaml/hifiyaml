@@ -1,7 +1,7 @@
 [project]
 name = "hifiyaml"
-version = "0.1.8"
-description = "High-fidelity WYSIWYG YAML parser and emitter that preserves exact formatting"
+version = "0.1.9"
+description = "High-fidelity WYSIWYG YAML parser and emitter that preserve exact formatting"
 readme = "README.md"
 authors = [
     { name="Guoqing Ge", email="Guoqing.Ge@noaa.gov" }
