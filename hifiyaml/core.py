@@ -75,7 +75,7 @@ def dedent(block):
 #   if querystr ends with ".../0/key" and "key" is in the first line
 #   we need to find the next_pos based on ".../key" instead of ".../0"
 def next_pos(data, pos, querystr=""):
-    if pos == -1:
+    if pos == -1 or pos >= len(data):
         return len(data)
     query_list = querystr.strip("/").split("/")
 
@@ -162,11 +162,18 @@ def get_start_pos(data, querystr="", stop_on_error=False, linestr=""):
                     for j in range(0, knt):
                         nextpos = next_pos(data, nextpos, querystr)
                     cur = nextpos
+                    if cur >= len(data):
+                        errmsg = f"WARNNING: out of the list index '{querystr}' "
+                        sys.stderr.write(f"{errmsg}\n")
+                        if stop_on_error:
+                            sys.exit(1)
+                        found = False
+                        break
                     # skip all leading comments
                     dashpos = cur
-                    while data[dashpos].strip().startswith('#'):
+                    while dashpos < len(data) and data[dashpos].strip().startswith('#'):
                         dashpos += 1
-                    if "- " not in data[dashpos]:  # out of the list index
+                    if dashpos >= len(data) or "- " not in data[dashpos]:  # out of the list index
                         errmsg = f"WARNNING: out of the list index '{querystr}' "
                         sys.stderr.write(f"{errmsg}\n")
                         if stop_on_error:
