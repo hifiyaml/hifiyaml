@@ -2,15 +2,15 @@
 import os
 import sys
 import copy
-import tempfile
-import pytest
 
 # Use hifiyaml from the repo
 here = os.path.dirname(__file__)
 hifiyaml_path = os.path.join(here, "..")
 if hifiyaml_path not in sys.path:
     sys.path.insert(0, hifiyaml_path)
-import hifiyaml as hy
+
+import hifiyaml as hy  # noqa: E402
+import pytest  # noqa: E402
 
 
 # ============================================================
@@ -850,7 +850,6 @@ class TestIntegrationDemo:
         data = copy.copy(demo_data)
         hy.drop(data, "cost function/observations/observers/0/obs filters/1")
         # The Domain Check filter should be gone
-        remaining = "\n".join(data)
         # Check the block was removed (Domain Check was filter index 1)
         block_after = hy.get(data, "cost function/observations/observers/0/obs filters/0", do_dedent=True)
         assert any("RejectList" in line for line in block_after)
