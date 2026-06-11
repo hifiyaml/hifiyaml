@@ -1,6 +1,6 @@
 # hifiyaml
-High-fidelity WYSIWYG YAML parser and emitter that preserve exact formatting.    
-Original YAML structure and formatting are preserved, including comments, anchors, aliases, etc.    
+A high-fidelity WYSIWYG YAML parser and emitter that preserves exact formatting, including comments, anchors, aliases, blank lines, and indentation.    
+Check the more detailed [User Guide](docs/user_guide.md)     
 Check wiki at https://github.com/hifiyaml/hifiyaml/wiki
 
 ## Installation
