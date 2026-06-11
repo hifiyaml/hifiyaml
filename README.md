@@ -52,3 +52,13 @@ A query string `demo/configuration/detail/0/meaning` will return one dictionary 
 ```
 load, get, dump, drop, modify, next_pos, get_start_pos, dedent, text_to_yblock, strip_indentations, strip_leading_empty_lines
 ```
+
+## Testing
+```
+pip install pytest
+python3 -m pytest tests/test_hifiyaml.py -v
+```
+and use the shell-based diff tests:
+```
+cd tests; ./test.sh
+```
