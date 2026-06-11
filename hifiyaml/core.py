@@ -6,16 +6,17 @@ import sys
 
 
 # load a YAML file
-def load(fpath, replacements=None):
-    # precompile regex to match @VAR@
-    pattern = re.compile(r"@(\w+)@")
+def load(fpath, replacements=None, pattern=r"@(\w+)@"):
+    # precompile regex to match template variables
+    # one more example: pattern=r"\{\{\s*(\w+)\s*\}\}" matches {{VAR}} and {{ VAR }}
+    compiled = re.compile(pattern)
 
     data = []
     with open(fpath, 'r') as infile:
         for line in infile:
             line = line.rstrip()  # strip all trailing empty spaces
             if replacements:
-                line = pattern.sub(lambda m: replacements.get(m.group(1), m.group(0)), line)
+                line = compiled.sub(lambda m: replacements.get(m.group(1), m.group(0)), line)
             data.append(line)
     return data
 
@@ -75,7 +76,7 @@ def dedent(block):
 #   if querystr ends with ".../0/key" and "key" is in the first line
 #   we need to find the next_pos based on ".../key" instead of ".../0"
 def next_pos(data, pos, querystr=""):
-    if pos == -1:
+    if pos == -1 or pos >= len(data):
         return len(data)
     query_list = querystr.strip("/").split("/")
 
@@ -162,11 +163,18 @@ def get_start_pos(data, querystr="", stop_on_error=False, linestr=""):
                     for j in range(0, knt):
                         nextpos = next_pos(data, nextpos, querystr)
                     cur = nextpos
+                    if cur >= len(data):
+                        errmsg = f"WARNNING: out of the list index '{querystr}' "
+                        sys.stderr.write(f"{errmsg}\n")
+                        if stop_on_error:
+                            sys.exit(1)
+                        found = False
+                        break
                     # skip all leading comments
                     dashpos = cur
-                    while data[dashpos].strip().startswith('#'):
+                    while dashpos < len(data) and data[dashpos].strip().startswith('#'):
                         dashpos += 1
-                    if "- " not in data[dashpos]:  # out of the list index
+                    if dashpos >= len(data) or "- " not in data[dashpos]:  # out of the list index
                         errmsg = f"WARNNING: out of the list index '{querystr}' "
                         sys.stderr.write(f"{errmsg}\n")
                         if stop_on_error:
