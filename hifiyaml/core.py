@@ -89,12 +89,13 @@ def next_pos(data, pos, querystr=""):
     line1 = data[pos]
     nspace, spaces, line1 = strip_indentations(line1)
     if len(query_list) >= 2 and query_list[-2].isdigit() and not query_list[-1].isdigit():
-        # i.e, the ".../0/key" situation
+        # i.e, the ".../0/key" situation where key is on the same line as "- "
         # more complicated situations, such as a list of list (of list ...)
         # are suggested to be handled based on the first list block outside hifiyaml
-        line1 = line1[2:]  # assume "- " instead of "-   " or even more spaces
-        nspace += 2
-        spaces += "  "
+        if line1.startswith("- "):
+            line1 = line1[2:]  # assume "- " instead of "-   " or even more spaces
+            nspace += 2
+            spaces += "  "
 
     end = len(data)
     next_pos = None
@@ -161,10 +162,10 @@ def get_start_pos(data, querystr="", stop_on_error=False, linestr=""):
                     nextpos = i
                     knt = int(s)
                     for j in range(0, knt):
-                        nextpos = next_pos(data, nextpos, querystr)
+                        nextpos = next_pos(data, nextpos)
                     cur = nextpos
                     if cur >= len(data):
-                        errmsg = f"WARNNING: out of the list index '{querystr}' "
+                        errmsg = f"WARNING: out of the list index '{querystr}' "
                         sys.stderr.write(f"{errmsg}\n")
                         if stop_on_error:
                             sys.exit(1)
@@ -175,7 +176,7 @@ def get_start_pos(data, querystr="", stop_on_error=False, linestr=""):
                     while dashpos < len(data) and data[dashpos].strip().startswith('#'):
                         dashpos += 1
                     if dashpos >= len(data) or "- " not in data[dashpos]:  # out of the list index
-                        errmsg = f"WARNNING: out of the list index '{querystr}' "
+                        errmsg = f"WARNING: out of the list index '{querystr}' "
                         sys.stderr.write(f"{errmsg}\n")
                         if stop_on_error:
                             sys.exit(1)

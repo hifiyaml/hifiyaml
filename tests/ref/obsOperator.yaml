@@ -1,0 +1,12 @@
+obs operator:
+    name: VertInterp
+    vertical coordinate: air_pressure
+    observation vertical coordinate: pressure
+    observation vertical coordinate group: MetaData
+    interpolation method: log-linear
+    #gsi geovals:
+    #  filename: "obsout/sfcship_tsen_geoval_2024052700.nc4"
+    #  levels_are_top_down: False
+    variables:
+    - name: airTemperature
+
