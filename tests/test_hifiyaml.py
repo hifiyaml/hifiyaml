@@ -870,6 +870,18 @@ class TestIntegrationDemo:
             assert isinstance(npos, int)
             assert npos > 641
 
+    def test_dump_observers_1_obs_operator(self, demo_data, capsys):
+        """Test that querying a key in a non-first list item works (the .../N/key fix)."""
+        block = hy.get(demo_data, "observations/observers/1/obs operator", do_dedent=True)
+        assert block[0] == "obs operator:"
+        assert any("VertInterp" in line for line in block)
+        assert any("name: airTemperature" in line for line in block)
+        # Should NOT include content from the next sibling key (linear obs operator)
+        assert not any("linear obs operator" in line for line in block)
+        # Should not trigger out-of-bounds warning during list traversal
+        captured = capsys.readouterr()
+        assert "out of the list index" not in captured.err
+
 
 # ============================================================
 # Tests: Serialization roundtrip
