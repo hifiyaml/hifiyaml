@@ -165,7 +165,7 @@ def get_start_pos(data, querystr="", stop_on_error=False, linestr=""):
                         nextpos = next_pos(data, nextpos)
                     cur = nextpos
                     if cur >= len(data):
-                        errmsg = f"WARNNING: out of the list index '{querystr}' "
+                        errmsg = f"WARNING: out of the list index '{querystr}' "
                         sys.stderr.write(f"{errmsg}\n")
                         if stop_on_error:
                             sys.exit(1)
@@ -176,7 +176,7 @@ def get_start_pos(data, querystr="", stop_on_error=False, linestr=""):
                     while dashpos < len(data) and data[dashpos].strip().startswith('#'):
                         dashpos += 1
                     if dashpos >= len(data) or "- " not in data[dashpos]:  # out of the list index
-                        errmsg = f"WARNNING: out of the list index '{querystr}' "
+                        errmsg = f"WARNING: out of the list index '{querystr}' "
                         sys.stderr.write(f"{errmsg}\n")
                         if stop_on_error:
                             sys.exit(1)
