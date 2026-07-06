@@ -180,12 +180,14 @@ def get_start_pos(data, querystr="", stop_on_error=False, linestr=""):
                         sys.stderr.write(f"{errmsg}\n")
                         if stop_on_error:
                             sys.exit(1)
+                    end = next_pos(data, cur)
                     found = True
                     break
 
             else:  # dictionary key or linestr
                 if (linestr and linestr in data[i] and not data[i].strip().startswith("#")) or f"{s}:" in line:
                     cur = i
+                    end = next_pos(data, cur)
                     found = True
                     break
         if not found:
@@ -212,7 +214,10 @@ def get(data, querystr, do_dedent=False):
         pos1 = 0
         pos2 = len(data)
     else:
-        pos1, _ = get_start_pos(data, querystr)
+        pos1, errmsg = get_start_pos(data, querystr)
+        if errmsg is not None:
+            sys.stderr.write(f"{errmsg}\n")
+            return block
         pos2 = next_pos(data, pos1, querystr)
 
     nspace = strip_indentations(data[pos1])[0]

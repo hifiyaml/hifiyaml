@@ -16,6 +16,7 @@ operate.py demo.yaml dump "cost function/observations/observers/0/obs filters/4"
 operate.py demo.yaml dump "cost function/observations/observers/0/obs filters/5" > tmp/5.yaml
 operate.py demo.yaml dump "cost function/observations/observers/0/obs filters/6" > tmp/6.yaml
 operate.py demo.yaml dump "observations/observers/1/obs operator" > tmp/obsOperator.yaml
+operate.py demo.yaml dump "observations/observers/1/obs filters/0/obs operator" &> tmp/keyError.yaml
 
 operate.py demo.yaml modify "cost function/background error/components/0" bec_bump.yaml > tmp/new_bec.yaml
 operate.py demo.yaml modify "cost function/background error/components/0" bec_bump.yaml > tmp/new_bec.yaml

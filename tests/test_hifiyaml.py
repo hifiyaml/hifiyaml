@@ -882,6 +882,13 @@ class TestIntegrationDemo:
         captured = capsys.readouterr()
         assert "out of the list index" not in captured.err
 
+    def test_invalid_key_in_block_returns_error(self, demo_data, capsys):
+        """Test that querying a non-existent key within a block returns empty and emits error."""
+        block = hy.get(demo_data, "observations/observers/1/obs filters/0/obs operator")
+        assert block == []
+        captured = capsys.readouterr()
+        assert "obs operator" in captured.err
+
 
 # ============================================================
 # Tests: Serialization roundtrip
