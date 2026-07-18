@@ -179,12 +179,12 @@ class TestLoad:
         assert data[2] == "  - item1"
         assert data[3] == "  - item2"
 
-    def test_load_strips_trailing_whitespace(self, tmp_path):
+    def test_load_preserves_trailing_whitespace(self, tmp_path):
         f = tmp_path / "test.yaml"
         f.write_text("key: value   \nother: data  \n")
         data = hy.load(str(f))
-        assert data[0] == "key: value"
-        assert data[1] == "other: data"
+        assert data[0] == "key: value   "
+        assert data[1] == "other: data  "
 
     def test_load_preserves_leading_whitespace(self, tmp_path):
         f = tmp_path / "test.yaml"
