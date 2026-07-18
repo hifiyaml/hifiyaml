@@ -14,7 +14,7 @@ def load(fpath, replacements=None, pattern=r"@(\w+)@"):
     data = []
     with open(fpath, 'r') as infile:
         for line in infile:
-            line = line.rstrip()  # strip all trailing empty spaces
+            line = line.rstrip('\r\n')  # strip trailing newline characters
             if replacements:
                 line = compiled.sub(lambda m: replacements.get(m.group(1), m.group(0)), line)
             data.append(line)
